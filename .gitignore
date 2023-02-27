@@ -1,0 +1,2 @@
+# file. This file is used by asdf to determine which version of the tool to install and use. The file is a simple text file with one line per tool. The line contains the name of the tool and the version to use. For example, the following line tells asdf to install and use version 1.0.0 of the tool named foo:
+.tool-versions
