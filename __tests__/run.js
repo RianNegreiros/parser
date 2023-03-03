@@ -5,7 +5,12 @@ const { Parser } = require('../src/Parser');
 
 const parser = new Parser();
 
-const Program = `'42'`;
+const Program = `
+  /**
+  * This is a comment
+  */
+ 42
+`;
 
 const ast = parser.parse(Program);
 

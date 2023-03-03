@@ -1,3 +1,22 @@
+// Tokenizer spec
+const Spec = [
+  // Whitespace
+  [/^\s+/, null],
+
+  // Single-line comments
+  [/^\/\/.*/, null],
+
+  // Multi-line comments
+  [/^\/\*[\s\S]*?\*\//, null],
+
+  // Numbers
+  [/^\d+/, 'NUMBER'],
+
+  // Strings
+  [/^"(.*)"/, 'STRING'],
+  [/^'(.*)'/, 'STRING'],
+]
+
 // Tokenizer class
 // Lazily pulls tokens from the input stream
 
@@ -25,32 +44,36 @@ class Tokenizer {
       return null;
     }
 
-    const string = this._string.slice(this._cursor);
+  const string = this._string.slice(this._cursor);
 
-  // Numbers
-  if (!Number.isNaN(Number(string[0]))) {
-    let number = '';
-    while (!Number.isNaN(Number(string[this._cursor]))) {
-      number += string[this._cursor++];
+  for (const [regex, tokenType] of Spec) {
+    const tokenValue = this._match(regex, string);
+
+    if (tokenValue == null) {
+      continue
     }
+
+    // If the token type is null, we should skip it
+    if (tokenType === null) {
+      return this.getNextToken();
+    }
+
     return {
-      type: 'NUMBER',
-      value: number
-    };
+      type: tokenType,
+      value: tokenValue
+    }
   }
 
-  if (string[0] === '"' || string[0] === "'") {
-    let s = '';
-    do {
-      s += string[this._cursor++];
-    } while (string[this._cursor] !== '"' && !this.ifEOF());
-    s += this._cursor++;
-    return {
-      type: 'STRING',
-      value: s
-    };
+  throw new SyntaxError(`Unexpected token: ${string[0]}`);
   }
-  return null;
+
+  _match(regexp, string) {
+    const matched = regexp.exec(string);
+    if (matched === null) {
+      return null;
+    }
+    this._cursor += matched[0].length;
+    return matched[0];
   }
 }
 
