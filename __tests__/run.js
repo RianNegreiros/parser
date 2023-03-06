@@ -6,7 +6,10 @@ const assert = require('assert');
 
 // Load all tests
 
-const tests = [require('./literals-test.js')];
+const tests = [
+  require('./literals-test.js'),
+  require('./statement-list-test.js'),
+];
 
 const parser = new Parser();
 
@@ -14,11 +17,11 @@ const Program = `
   /**
   * This is a comment
   */
- "foo"
- 'bar'
+ "foo";
+ 'bar';
 
  // Number
- 42
+ 42;
 `;
 
 const ast = parser.parse(Program);

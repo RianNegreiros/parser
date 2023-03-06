@@ -9,6 +9,9 @@ const Spec = [
   // Multi-line comments
   [/^\/\*[\s\S]*?\*\//, null],
 
+  // delimiters
+  [/^;/, ';'],
+
   // Numbers
   [/^\d+/, 'NUMBER'],
 
