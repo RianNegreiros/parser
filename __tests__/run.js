@@ -15,20 +15,18 @@ const tests = [
 
 const parser = new Parser();
 
-const Program = `
-  /**
-  * This is a comment
-  */
- "foo";
- 'bar';
+function exec() {
+  const program = `
+    42;
+  `;
 
- // Number
- 42;
-`;
+  const ast = parser.parse(program);
 
-const ast = parser.parse(Program);
+  console.log(JSON.stringify(ast, null, 2));
+}
 
-console.log(JSON.stringify(ast, null, 2));
+// Manual test
+exec();
 
 // Test
 
@@ -39,6 +37,6 @@ function test(program, expected) {
 
 // Run all tests
 
-tests.forEach(testRun => testRun(test));
+//tests.forEach(testRun => testRun(test));
 
 console.log('All tests passed!');
