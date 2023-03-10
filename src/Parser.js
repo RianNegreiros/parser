@@ -32,6 +32,15 @@ const DefaultFactory = {
     }
   },
 
+  BinaryExpression(operator, left, right) {
+    return {
+      type: 'BinaryExpression',
+      operator,
+      left,
+      right
+    }
+  },
+
   StringLiteral(value) {
     return {
       type: 'StringLiteral',
@@ -73,7 +82,7 @@ const SExpressionFactory = {
   }
 }
 
-const AST_NODE = 's-expression';
+const AST_NODE = 'default';
 
 const factory = AST_NODE ===  'default' ? DefaultFactory : SExpressionFactory;
 
@@ -181,7 +190,24 @@ class Parser {
   //   ;
 
   Expression() {
-    return this.Literal();
+    return this.AdditiveExpression();
+  }
+
+  // AdditiveExpression
+  //   :Literal
+  //   | MultiplicativeExpression ADDITIVE_OPERATOR Literal -> Literal ADDITIVE_OPERATOR Literal
+  //   ;
+
+  AdditiveExpression() {
+    let left = this.Literal();
+
+    while (this._lookahead.type === 'ADDITIVE_OPERATOR') {
+      const operator = this._eat('ADDITIVE_OPERATOR');
+      const right = this.Literal();
+      left = factory.BinaryExpression(operator.value, left, right);
+    }
+
+      return left;
   }
 
   // Literal
