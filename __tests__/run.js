@@ -11,13 +11,14 @@ const tests = [
   require('./statement-list-test.js'),
   require('./block-test.js'),
   require('./empty-statement-test.js'),
+  require('./math-test.js'),
 ];
 
 const parser = new Parser();
 
 function exec() {
   const program = `
-    42;
+    (3 + 2) * 2;
   `;
 
   const ast = parser.parse(program);
