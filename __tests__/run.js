@@ -18,7 +18,7 @@ const parser = new Parser();
 
 function exec() {
   const program = `
-    42 + 2 - 2;
+    3 * 2 * 2;
   `;
 
   const ast = parser.parse(program);
