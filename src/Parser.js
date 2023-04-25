@@ -68,6 +68,22 @@ const DefaultFactory = {
       id,
       init
     }
+  },
+
+  Identifier(name) {
+    return {
+      type: 'Identifier',
+      name
+    }
+  },
+
+  IfStatement(test, consequent, alternate) {
+    return {
+      type: 'IfStatement',
+      test,
+      consequent,
+      alternate
+    }
   }
 }
 
@@ -78,7 +94,7 @@ const SExpressionFactory = {
     return ['begin', body]
   },
 
-  EmptyStatement() {},
+  EmptyStatement() { },
 
   BlockStatement(body) {
     return ['begin', body]
@@ -99,7 +115,7 @@ const SExpressionFactory = {
 
 const AST_NODE = 'default';
 
-const factory = AST_NODE ===  'default' ? DefaultFactory : SExpressionFactory;
+const factory = AST_NODE === 'default' ? DefaultFactory : SExpressionFactory;
 
 class Parser {
   // Initialize the parser
@@ -154,19 +170,43 @@ class Parser {
   // : ExpressionStatement
   // | BlockStatement
   // | EmptyStatement
+  // | VariableStatement
+  // | IfStatement
   // ;
 
   Statement() {
     switch (this._lookahead.type) {
       case ';':
         return this.EmptyStatement()
-      case '{': 
+      case 'if':
+        return this.IfStatement()
+      case '{':
         return this.BlockStatement()
       case 'let':
         return this.VariableStatement()
       default:
         return this.ExpressionStatement()
     }
+  }
+
+  // IfStatement
+  //   : 'if' '(' Expression ')' Statement
+  //   | 'if' '(' Expression ')' Statement 'else' Statement
+
+  IfStatement() {
+    this._eat('if')
+
+    this._eat('(')
+    const test = this.Expression()
+
+    this._eat(')')
+    const consequent = this.Statement()
+
+    const alternate =
+      this._lookahead != null && this._lookahead.type === 'else'
+        ? this._eat('else') && this.Statement() : null
+
+    return factory.IfStatement(test, consequent, alternate)
   }
 
   // VariableStatement
@@ -265,7 +305,7 @@ class Parser {
   //   ;
 
   AssignmentExpression() {
-    const left = this.AdditiveExpression()
+    const left = this.RelationalExpression()
 
     if (!this._isAssignmentOperator(this._lookahead.type)) {
       return left;
@@ -287,10 +327,7 @@ class Parser {
   // Identifier
   Identifier() {
     const name = this._eat('IDENTIFIER').value
-    return {
-      type: 'Identifier',
-      name
-    }
+    return factory.Identifier(name)
   }
 
   // Extra check to make sure the left hand side expression
@@ -319,6 +356,14 @@ class Parser {
     return this._eat('COMPLEX_ASSIGNMENT')
   }
 
+  // RelationalExpression
+  //   : AdditiveExpression
+  //  | RelationalExpression RELATIONAL_OPERATOR RelationalExpression
+
+  RelationalExpression() {
+    return this._BinaryExpressionParser('AdditiveExpression', 'RELATIONAL_OPERATOR')
+  }
+
   // AdditiveExpression
   //   : MultiplicativeExpression
   //   | AdditiveExpression ADDITIVE_OPERATOR MultiplicativeExpression -> MultiplicativeExpression ADDITIVE_OPERATOR MultiplicativeExpression
@@ -328,7 +373,7 @@ class Parser {
     return this._BinaryExpressionParser('MultiplicativeExpression', 'ADDITIVE_OPERATOR')
   }
 
-    // MultiplicativeExpression
+  // MultiplicativeExpression
   //   : PrimaryExpression
   //   | MultiplicativeExpression MULTIPLICATIVE_OPERATOR PrimaryExpression -> PrimaryExpression MULTIPLICATIVE_OPERATOR PrimaryExpression
   //   ;
@@ -400,7 +445,7 @@ class Parser {
     throw new SyntaxError(`Literal: Unexpected token: ${this._lookahead.type}`)
   }
 
-    // StringLiteral
+  // StringLiteral
   //   : STRING
   //   ;
 
