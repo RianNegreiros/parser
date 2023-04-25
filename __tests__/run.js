@@ -22,15 +22,18 @@ const tests = [
   require('./while-test.js'),
   require('./do-while-test.js'),
   require('./for-test.js'),
+  require('./function-test.js'),
 ];
 
 const parser = new Parser();
 
 function exec() {
   const program = `
-    while (x > 10) {
-      x -= 1;
+    def square(x) {
+      return x * x;
     }
+
+    square(2);
   `;
 
   const ast = parser.parse(program);

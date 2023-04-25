@@ -141,6 +141,22 @@ const DefaultFactory = {
       update,
       body
     }
+  },
+
+  FunctionDeclaration(name, params, body) {
+    return {
+      type: 'FunctionDeclaration',
+      name,
+      params,
+      body
+    }
+  },
+
+  ReturnStatement(argument) {
+    return {
+      type: 'ReturnStatement',
+      argument
+    }
   }
 }
 
@@ -241,6 +257,10 @@ class Parser {
         return this.BlockStatement()
       case 'let':
         return this.VariableStatement()
+      case 'def':
+        return this.FunctionDeclaration()
+      case 'return':
+        return this.ReturnStatement()
       case 'while':
       case 'do':
       case 'for':
@@ -250,7 +270,54 @@ class Parser {
     }
   }
 
-  // ExpressionStatement
+  // FunctionDeclaration
+  //   : 'def' Identifier '(' IdentifierList ')' BlockStatement
+  //   ;
+
+  FunctionDeclaration() {
+    this._eat('def')
+    const name = this.Identifier()
+
+    this._eat('(')
+
+    const params =
+      this._lookahead.type === ')' ? this.FormalParameterList() : []
+
+    this._eat(')')
+
+    const body = this.BlockStatement()
+
+    return factory.FunctionDeclaration(name, params, body)
+  }
+
+  // FormalParameterList
+  //   : Identifier
+  //   | Identifier ',' FormalParameterList
+  //   ;
+
+  FormalParameterList() {
+    const params = []
+
+    do {
+      params.push(this.Identifier())
+    } while (this._lookahead.type === ',' && this._eat(','))
+
+    return params
+  }
+
+  // ReturnStatement
+  //   : 'return' Expression ';'
+  //   ;
+
+  ReturnStatement() {
+    this._eat('return')
+    const argument = this._lookahead.type === ';' ? null : this.Expression()
+    this._eat(';')
+
+    return factory.ReturnStatement(argument)
+  }
+
+  // IterationStatement
   //   : WhileStatement
   //   | DoWhileStatement
   //   | ForStatement
