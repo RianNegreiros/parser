@@ -12,13 +12,19 @@ const tests = [
   require('./block-test.js'),
   require('./empty-statement-test.js'),
   require('./math-test.js'),
+  require('./assignment-test.js'),
+  require('./variable-test.js'),
 ];
 
 const parser = new Parser();
 
 function exec() {
   const program = `
-    x = y = 42;
+    let y;
+    let a, b;
+    let c, d = 10;
+    let x = 42;
+    r = 10;
   `;
 
   const ast = parser.parse(program);

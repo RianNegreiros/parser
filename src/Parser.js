@@ -53,6 +53,21 @@ const DefaultFactory = {
       type: 'NumericLiteral',
       value
     }
+  },
+
+  VariableStatement(declarations) {
+    return {
+      type: 'VariableStatement',
+      declarations
+    }
+  },
+
+  VariableDeclaration(id, init) {
+    return {
+      type: 'VariableDeclaration',
+      id,
+      init
+    }
   }
 }
 
@@ -74,7 +89,7 @@ const SExpressionFactory = {
   },
 
   StringLiteral(value) {
-    return `"value"`;
+    return value;
   },
 
   NumericLiteral(value) {
@@ -147,9 +162,60 @@ class Parser {
         return this.EmptyStatement()
       case '{': 
         return this.BlockStatement()
+      case 'let':
+        return this.VariableStatement()
       default:
         return this.ExpressionStatement()
     }
+  }
+
+  // VariableStatement
+  //   : 'let' VariableDeclarationList ';'
+  //   ;
+
+  VariableStatement() {
+    this._eat('let')
+    const declarations = this.VariableDeclarationList()
+    this._eat(';')
+    return factory.VariableStatement(declarations)
+  }
+
+  // VariableDeclarationList
+  //   : VariableDeclaration
+  //   | VariableDeclaration ',' VariableDeclarationList
+  //   ;
+
+  VariableDeclarationList() {
+    const declarations = [];
+
+    do {
+      declarations.push(this.VariableDeclaration())
+    } while (this._lookahead.type === ',' && this._eat(','))
+
+    return declarations;
+  }
+
+  // VariableDeclaration
+  //   : Identifier Initializer
+  //   ;
+
+  VariableDeclaration() {
+    const id = this.Identifier()
+    const init =
+      this._lookahead.type !== ';' && this._lookahead.type !== ','
+        ? this.VariableInitializer()
+        : null
+
+    return factory.VariableDeclaration(id, init)
+  }
+
+  // VariableInitializer
+  //   : SIMPLE_ASSIGNMENT AssignmentExpression
+  //   ;
+
+  VariableInitializer() {
+    this._eat('SIMPLE_ASSIGNMENT')
+    return this.AssignmentExpression()
   }
 
   // EmptyStatement
